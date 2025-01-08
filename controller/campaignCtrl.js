@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
 import Campaign from "../models/campaignModel.js";
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Define __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // export const createCampaign = async (req, res) => {
 //   try {
@@ -85,8 +91,8 @@ export const createCampaign = async (req, res) => {
   try {
     const { body, file } = req;
 
-    console.log("Received body:", body); // Debug log
-    console.log("Received file:", file); // Debug log
+    console.log("Received body:", body);
+    console.log("Received file:", file);
 
     // Parse the geo field
     let geoArray = [];
@@ -364,6 +370,94 @@ export const deleteSingleCampaign = async (req, res) => {
 //   }
 // };
 
+// export const updateCampaign = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { body } = req;
+
+//     console.log("Request Body:", body);
+//     console.log("Uploaded File:", req.file);
+
+//     // Fetch the existing campaign
+//     const existingCampaign = await Campaign.findById(id);
+//     if (!existingCampaign) {
+//       return res.status(404).json({ error: "Campaign not found" });
+//     }
+
+//     // Parse the geo field properly
+//     let geoArray = [];
+//     if (Array.isArray(body.geo)) {
+//       geoArray = body.geo;
+//     } else if (typeof body.geo === "string") {
+//       geoArray = [body.geo];
+//     }
+
+//     // Parse allowedMedia and disallowedMedia
+//     const allowedMedia = body.allowedMedia
+//       ? JSON.parse(body.allowedMedia)
+//       : undefined;
+//     const disallowedMedia = body.disallowedMedia
+//       ? JSON.parse(body.disallowedMedia)
+//       : undefined;
+
+//     const updatedData = {
+//       campaignName: body.campaignName,
+//       campaignPayout: body.campaignPayout,
+//       campaignCategory: body.campaignCategory,
+//       campaignType: body.campaignType,
+//       geo: geoArray.length ? geoArray : undefined,
+//       featured: body.featured,
+//       preferred: body.preferred,
+//       previewLink: body.previewLink,
+//       device: body.device,
+//       allowedMedia,
+//       disallowedMedia,
+//       description: body.description,
+//     };
+
+//     // Handle image upload
+//     if (req.file) {
+//       updatedData.image = req.file.path.replace("\\", "/"); // Ensure correct path format
+
+//       // Delete the old image if it exists
+//       if (existingCampaign.image) {
+//         fs.unlink(existingCampaign.image, (err) => {
+//           if (err) {
+//             console.error("Error deleting old image:", err.message);
+//             // Optionally, handle the error (e.g., notify the user)
+//           } else {
+//             console.log("Old image deleted successfully");
+//           }
+//         });
+//       }
+//     }
+
+//     // Remove undefined fields
+//     Object.keys(updatedData).forEach((key) => {
+//       if (updatedData[key] === undefined) {
+//         delete updatedData[key];
+//       }
+//     });
+
+//     const campaign = await Campaign.findByIdAndUpdate(id, updatedData, {
+//       new: true,
+//       runValidators: true,
+//     });
+
+//     if (!campaign) {
+//       return res.status(404).json({ error: "Campaign not found" });
+//     }
+
+//     res.status(200).json({
+//       message: "Campaign updated successfully",
+//       campaign,
+//     });
+//   } catch (error) {
+//     console.error("Error updating campaign:", error.message);
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 export const updateCampaign = async (req, res) => {
   try {
     const { id } = req.params;
@@ -411,14 +505,18 @@ export const updateCampaign = async (req, res) => {
 
     // Handle image upload
     if (req.file) {
-      updatedData.image = req.file.path.replace("\\", "/"); // Ensure correct path format
+      updatedData.image = `/uploads/${req.file.filename}`; // Ensure correct path format
 
       // Delete the old image if it exists
       if (existingCampaign.image) {
-        fs.unlink(existingCampaign.image, (err) => {
+        const oldImagePath = path.join(
+          __dirname,
+          "../..",
+          existingCampaign.image
+        );
+        fs.unlink(oldImagePath, (err) => {
           if (err) {
             console.error("Error deleting old image:", err.message);
-            // Optionally, handle the error (e.g., notify the user)
           } else {
             console.log("Old image deleted successfully");
           }
