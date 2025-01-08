@@ -16,7 +16,8 @@ const campaignSchema = new mongoose.Schema(
       type: String,
     },
     geo: {
-      type: String,
+      type: [String],
+      default: [],
     },
     featured: {
       type: String,
